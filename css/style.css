@@ -460,3 +460,10 @@ table.tbl td code { font-size: 12.2px; }
 @media (max-width: 420px) {
   .stats .stat { display: none; }         /* на самых узких экранах XP уезжает под кнопки */
 }
+
+/* Пустая область вывода не должна съедать пол-экрана на телефоне */
+.output:empty { flex: 0 0 0; padding: 0; min-height: 0; }
+
+@media (max-width: 820px) {
+  .editor-wrap { min-height: 45vh; }
+}
