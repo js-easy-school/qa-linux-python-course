@@ -252,6 +252,52 @@
     return frag;
   }
 
+  /* ─────────── быстрые вставки для телефона ─────────── */
+
+  var SHELL_KEYS = [
+    { t: '|' }, { t: '>' }, { t: '-' }, { t: '/' }, { t: '"' },
+    { t: '/var/log/core/registrar.log', label: 'лог сервиса', wide: true },
+    { t: '/etc/core/registrar.conf', label: 'конфиг', wide: true },
+    { t: '/etc/core/subscribers.csv', label: 'абоненты', wide: true },
+    { t: 'core-registrar', wide: true },
+    { t: 'http://localhost:8080', wide: true },
+    { t: '250010000000001', label: 'IMSI', wide: true }
+  ];
+
+  var PY_KEYS = [
+    { t: '_' }, { t: ':' }, { t: '(' }, { t: ')' }, { t: '[' }, { t: ']' },
+    { t: '{' }, { t: '}' }, { t: '"' }, { t: '=' }, { t: '==' },
+    { t: '    ', label: '⇥ отступ' },
+    { t: '/var/log/core/registrar.log', label: 'лог сервиса', wide: true },
+    { t: 'http://localhost:8080', wide: true },
+    { t: '250010000000001', label: 'IMSI', wide: true }
+  ];
+
+  function buildKeys(boxId, keys, insert) {
+    var box = $(boxId);
+    if (!box || box.dataset.ready) return;
+    box.dataset.ready = '1';
+    keys.forEach(function (k) {
+      var b = document.createElement('button');
+      b.className = 'qk' + (k.wide ? ' wide' : '');
+      b.textContent = k.label || k.t;
+      b.title = k.t;
+      b.onmousedown = function (e) { e.preventDefault(); };   // не терять фокус поля
+      b.onclick = function () { insert(k.t); };
+      box.appendChild(b);
+    });
+  }
+
+  function insertIntoInput(el, text) {
+    var start = el.selectionStart === null ? el.value.length : el.selectionStart;
+    var end = el.selectionEnd === null ? el.value.length : el.selectionEnd;
+    el.value = el.value.slice(0, start) + text + el.value.slice(end);
+    var pos = start + text.length;
+    el.focus();
+    try { el.setSelectionRange(pos, pos); } catch (e) { /* некоторые мобильные браузеры */ }
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+
   /* ─────────── вкладки рабочей области ─────────── */
 
   function setWorkTab(which) {
@@ -408,6 +454,9 @@
       if (e.altKey && e.key === 'ArrowRight') go(state.idx + 1);
       if (e.altKey && e.key === 'ArrowLeft') go(state.idx - 1);
     });
+
+    buildKeys('term-keys', SHELL_KEYS, function (t) { insertIntoInput($('term-input'), t); });
+    buildKeys('py-keys', PY_KEYS, function (t) { insertIntoInput($('editor'), t); });
 
     renderSidebar();
     renderProgress();
