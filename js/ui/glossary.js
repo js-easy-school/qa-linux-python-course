@@ -5,6 +5,10 @@
   var TERMS = {
     /* Linux */
     'help': ['Linux', 'Показывает доступные команды тренажёра и краткую справку по ним.'],
+    'ssh': ['Linux / сеть', 'Защищённый протокол для удалённого входа на сервер и выполнения команд.'],
+    'cli': ['Интерфейс', 'Command-Line Interface — управление программой текстовыми командами.'],
+    'vm': ['Виртуализация', 'Virtual Machine — программно созданный компьютер со своей операционной системой.'],
+    'cwd': ['Linux', 'Current Working Directory — каталог, относительно которого выполняются команды.'],
     'whoami': ['Linux', 'Печатает имя пользователя, от которого сейчас выполняются команды.'],
     'hostname': ['Linux', 'Показывает имя текущего узла — компьютера, сервера или виртуальной машины.'],
     'core-node': ['Учебный стенд', 'Имя учебного Linux-сервера, на котором в тренажёре выполняются команды и работают сервисы ядра.'],
@@ -52,6 +56,11 @@
     'pid': ['Linux', 'Уникальный числовой идентификатор работающего процесса.'],
     'systemd': ['Linux', 'Менеджер запуска и контроля системных служб в Linux.'],
     'tun': ['Linux / сеть', 'Виртуальный сетевой интерфейс уровня IP; нужен UPF и UE для пользовательского трафика.'],
+    'posix': ['Операционные системы', 'Набор стандартов совместимости Unix-подобных систем и их программных интерфейсов.'],
+    'sigterm': ['Linux', 'Сигнал с просьбой штатно завершить процесс и дать ему выполнить очистку.'],
+    'sigkill': ['Linux', 'Сигнал немедленного завершения процесса без возможности выполнить очистку.'],
+    'cpu': ['Компьютер', 'Центральный процессор; метрика CPU показывает долю вычислительной нагрузки.'],
+    'ram': ['Компьютер', 'Оперативная память, которую процессы используют во время работы.'],
 
     /* Сети */
     'osi': ['Сети', 'Эталонная модель из семи уровней, помогающая локализовать сетевую проблему.'],
@@ -60,11 +69,18 @@
     'udp': ['Сети', 'Протокол без установления соединения и гарантии доставки; уменьшает накладные расходы.'],
     'sctp': ['Сети / 5G', 'Транспортный протокол N2, по которому gNB передаёт NGAP-сообщения в AMF.'],
     'dns': ['Сети', 'Система, преобразующая имена узлов в IP-адреса.'],
+    'icmp': ['Сети', 'Служебный сетевой протокол, который использует ping для проверки доступности.'],
+    'tls': ['Сети / безопасность', 'Шифрует соединение и подтверждает подлинность сервера, например в HTTPS.'],
+    'url': ['Сети', 'Адрес ресурса: схема, имя узла, порт, путь и параметры запроса.'],
     'socket': ['Сети', 'Точка сетевого обмена: протокол, локальный адрес и порт, иногда удалённый адрес.'],
     'порт': ['Сети', 'Числовой идентификатор сетевой службы внутри узла.'],
     'localhost': ['Сети', 'Имя собственного компьютера; обычно соответствует адресу 127.0.0.1.'],
     'http/2': ['Сети', 'Версия HTTP с бинарными кадрами и несколькими параллельными потоками в одном соединении.'],
     'http': ['Сети', 'Протокол запрос–ответ, используемый веб-сервисами и API.'],
+    'https': ['Сети / безопасность', 'HTTP поверх TLS: трафик шифруется, а сервер подтверждает свою подлинность.'],
+    'get': ['HTTP', 'Метод запроса для чтения ресурса без изменения его состояния.'],
+    'post': ['HTTP', 'Метод запроса для отправки данных и создания или запуска операции.'],
+    'rest': ['API', 'Стиль построения HTTP API вокруг ресурсов, методов и кодов ответа.'],
     'api': ['Разработка', 'Определённый интерфейс, через который одна программа обращается к другой.'],
     'client-server': ['Архитектура', 'Клиент отправляет запрос, сервер обрабатывает его и возвращает ответ.'],
 
@@ -79,11 +95,15 @@
     'volume': ['Docker', 'Хранилище данных, живущее отдельно от файловой системы контейнера.'],
     'inspect': ['Docker', 'Возвращает полное фактическое состояние Docker-объекта в JSON.'],
     'ci': ['CI/CD', 'Автоматический запуск проверок при изменении кода.'],
+    'ci/cd': ['CI/CD', 'Автоматизация проверок, сборки и доставки изменений в рабочую среду.'],
     'pipeline': ['CI/CD', 'Последовательность автоматических стадий: проверка, сборка, тесты и отчёты.'],
     'github actions': ['CI/CD', 'Сервис GitHub для запуска workflow из файлов репозитория.'],
     'gitlab ci': ['CI/CD', 'Система GitLab для выполнения pipeline, описанного в .gitlab-ci.yml.'],
     'yaml': ['Конфигурация', 'Текстовый формат конфигурации, чувствительный к отступам.'],
     'junit': ['Тестирование', 'XML-формат результатов тестов, который понимают CI-системы.'],
+    'json': ['Формат данных', 'Текстовый формат объектов и массивов, часто используемый в API и конфигурации.'],
+    'xml': ['Формат данных', 'Текстовый формат с тегами; часто используется для отчётов и обмена данными.'],
+    'csv': ['Формат данных', 'Табличный текстовый формат, где строки — записи, а значения разделены запятыми или другим разделителем.'],
 
     /* Python и тестирование */
     'python': ['Python', 'Скриптовый язык, часто используемый для автоматизации тестирования.'],
@@ -111,6 +131,19 @@
 
     /* 5G Core */
     '5g core': ['5G Core', 'Серверная часть мобильной сети: регистрирует абонента, создаёт сессии и проводит трафик.'],
+    'nf': ['5G Core', 'Network Function — отдельная сетевая функция ядра, например AMF, SMF или UDM.'],
+    'nas': ['5G Core', 'Сигнальные сообщения между UE и ядром для регистрации, аутентификации и управления сессиями.'],
+    'ran': ['5G', 'Radio Access Network — часть сети доступа между UE и ядром; в стенде её представляет gNB.'],
+    'sim': ['5G', 'Модуль с идентификатором и секретным ключом абонента; в стенде его данные эмулируются.'],
+    'rca': ['QA / эксплуатация', 'Root Cause Analysis — поиск и доказательство первопричины сбоя.'],
+    'e2e': ['Тестирование', 'End-to-End — проверка полного пользовательского пути через все компоненты системы.'],
+    'sa': ['5G', 'Standalone — архитектура 5G, в которой радиосеть подключена напрямую к ядру 5G Core.'],
+    'suci': ['5G', 'Скрытая форма идентификатора абонента, защищающая постоянный SUPI/IMSI при передаче.'],
+    'opc': ['5G / безопасность', 'Производный секрет абонента, используемый вместе с K при аутентификации.'],
+    'mac': ['5G / безопасность', 'Message Authentication Code — код проверки целостности и подлинности сообщения.'],
+    'ambr': ['5G', 'Aggregate Maximum Bit Rate — общий предел скорости передачи данных абонента.'],
+    'hnet': ['5G / безопасность', 'Home Network — домашняя сеть абонента; её ключ используется для защиты SUCI.'],
+    'slice': ['5G', 'Логический срез сети с заданным типом сервиса и набором ресурсов.'],
     'open5gs': ['5G Core', 'Открытая программная реализация функций ядра 4G/5G.'],
     'ueransim': ['5G Core', 'Эмулятор gNB и UE для проверки протоколов 5G выше физического радиоуровня.'],
     'ue': ['5G Core', 'User Equipment — телефон или его эмулятор, который подключается к мобильной сети.'],
@@ -126,6 +159,10 @@
     'bsf': ['5G Core', 'Связывает сессию абонента с обслуживающей функцией политик.'],
     'nssf': ['5G Core', 'Выбирает подходящий сетевой slice для абонента.'],
     'sbi': ['5G Core', 'Service Based Interface — HTTP/2-взаимодействие между функциями ядра.'],
+    'n2': ['5G Core', 'Интерфейс сигнализации gNB ↔ AMF, использующий NGAP поверх SCTP.'],
+    'n3': ['5G Core', 'Интерфейс пользовательского трафика gNB ↔ UPF, использующий GTP-U.'],
+    'n4': ['5G Core', 'Интерфейс управления SMF ↔ UPF, использующий PFCP.'],
+    'n11': ['5G Core', 'Сервисный интерфейс AMF ↔ SMF для управления PDU-сессией.'],
     'ngap': ['5G Core', 'Сигнальный протокол между gNB и AMF на интерфейсе N2.'],
     'pfcp': ['5G Core', 'Протокол N4, по которому SMF настраивает правила передачи в UPF.'],
     'gtp-u': ['5G Core', 'Туннельный протокол пользовательского трафика между gNB и UPF.'],
@@ -141,11 +178,36 @@
   };
 
   var LABELS = {
-    'pwd': 'pwd', 'whoami': 'whoami', 'gnb': 'gNB', 'ue': 'UE', 'nrf': 'NRF', 'amf': 'AMF',
+    'pwd': 'pwd', 'whoami': 'whoami', 'ssh': 'SSH', 'cli': 'CLI', 'vm': 'VM', 'cwd': 'CWD',
+    'icmp': 'ICMP', 'tls': 'TLS', 'url': 'URL', 'json': 'JSON', 'xml': 'XML', 'csv': 'CSV',
+    'cpu': 'CPU', 'ram': 'RAM', 'posix': 'POSIX', 'sigterm': 'SIGTERM', 'sigkill': 'SIGKILL',
+    'https': 'HTTPS', 'get': 'GET', 'post': 'POST', 'rest': 'REST',
+    'gnb': 'gNB', 'ue': 'UE', 'nf': 'NF', 'nas': 'NAS', 'ran': 'RAN', 'sim': 'SIM',
+    'rca': 'RCA', 'e2e': 'E2E', 'sa': 'SA', 'suci': 'SUCI', 'opc': 'OPc', 'mac': 'MAC',
+    'ambr': 'AMBR', 'hnet': 'HNET', 'nrf': 'NRF', 'amf': 'AMF',
     'smf': 'SMF', 'upf': 'UPF', 'ausf': 'AUSF', 'udm': 'UDM', 'udr': 'UDR', 'pcf': 'PCF',
     'bsf': 'BSF', 'nssf': 'NSSF', 'sbi': 'SBI', 'ngap': 'NGAP', 'pfcp': 'PFCP',
-    'gtp-u': 'GTP-U', 'pdu': 'PDU', 'imsi': 'IMSI', 'plmn': 'PLMN', 'dnn': 'DNN', 'sst': 'SST'
+    'gtp-u': 'GTP-U', 'pdu': 'PDU', 'imsi': 'IMSI', 'plmn': 'PLMN', 'dnn': 'DNN', 'sst': 'SST',
+    'n2': 'N2', 'n3': 'N3', 'n4': 'N4', 'n11': 'N11'
   };
+
+  /* В обычном тексте подсвечиваем только сокращения и специальные названия,
+     чтобы теория не превращалась в сплошную россыпь ссылок. */
+  var INLINE_KEYS = [
+    'rm-registered', 'cm-connected', 'ps-active', 'docker compose', 'github actions',
+    'http/2', 'https', 'http', 'ci/cd', 'ci', 'gtp-u', '5g core', 'open5gs', 'ueransim',
+    'ssh', 'cli', 'vm', 'cwd', 'api', 'dns', 'tcp', 'udp', 'sctp', 'icmp', 'tls', 'url',
+    'json', 'xml', 'csv', 'yaml', 'junit', 'bdd', 'gherkin', 'pytest', 'rest', 'get', 'post',
+    'cpu', 'ram', 'posix', 'sigterm', 'sigkill', 'tun', 'osi',
+    'ue', 'gnb', 'nf', 'nas', 'ran', 'sim', 'nrf', 'amf', 'smf', 'upf', 'ausf', 'udm', 'udr',
+    'pcf', 'bsf', 'nssf', 'sbi', 'ngap', 'pfcp', 'pdu', 'imsi', 'plmn', 'dnn', 'sst',
+    'rca', 'e2e', 'sa', 'suci', 'opc', 'mac', 'ambr', 'hnet', 'slice', 'n2', 'n3', 'n4', 'n11'
+  ];
+
+  function regexEscape(text) { return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+  var INLINE_RE = new RegExp('(?<![A-Za-zА-Яа-яЁё0-9_])(' + INLINE_KEYS.slice().sort(function (a, b) {
+    return b.length - a.length;
+  }).map(regexEscape).join('|') + ')(?![A-Za-zА-Яа-яЁё0-9_])', 'gi');
 
   function normalize(text) {
     return String(text || '').replace(/\u00a0/g, ' ').replace(/^[\s`$]+|[\s`,.;:()]+$/g, '').replace(/\s+/g, ' ').toLowerCase();
@@ -186,30 +248,75 @@
     document.addEventListener('scroll', function () { if (!self.tip.hidden && self.anchor) self.position(self.anchor); }, true);
   };
 
+  Glossary.prototype.bindTerm = function (el, term) {
+    var self = this;
+    el.classList.add('glossary-term');
+    el.tabIndex = 0;
+    el.setAttribute('aria-label', el.textContent + ': ' + term.text);
+    el.addEventListener('pointerenter', function (e) {
+      if (e.pointerType === 'touch') return;
+      self.pinned = false; self.show(el, term);
+    });
+    el.addEventListener('pointerleave', function (e) {
+      if (e.pointerType === 'touch' || self.pinned) return;
+      self.hideTimer = setTimeout(function () { self.hide(false); }, 90);
+    });
+    el.addEventListener('focus', function () { if (!self.pinned) self.show(el, term); });
+    el.addEventListener('blur', function () { if (!self.pinned) self.hide(false); });
+    el.addEventListener('click', function (e) {
+      e.preventDefault();
+      self.pinned = self.anchor !== el || !self.pinned;
+      self.show(el, term);
+    });
+  };
+
   Glossary.prototype.decorate = function (scope) {
     var self = this;
     (scope || document).querySelectorAll('code:not([data-glossary-ready])').forEach(function (el) {
       el.dataset.glossaryReady = '1';
       var term = lookup(el.textContent);
       if (!term) return;
-      el.classList.add('glossary-term');
-      el.tabIndex = 0;
-      el.setAttribute('aria-label', el.textContent + ': ' + term.text);
-      el.addEventListener('pointerenter', function (e) {
-        if (e.pointerType === 'touch') return;
-        self.pinned = false; self.show(el, term);
-      });
-      el.addEventListener('pointerleave', function (e) {
-        if (e.pointerType === 'touch' || self.pinned) return;
-        self.hideTimer = setTimeout(function () { self.hide(false); }, 90);
-      });
-      el.addEventListener('focus', function () { if (!self.pinned) self.show(el, term); });
-      el.addEventListener('blur', function () { if (!self.pinned) self.hide(false); });
-      el.addEventListener('click', function (e) {
-        e.preventDefault();
-        self.pinned = self.anchor !== el || !self.pinned;
-        self.show(el, term);
-      });
+      self.bindTerm(el, term);
+    });
+    this.decoratePlainText(scope || document);
+  };
+
+  Glossary.prototype.decoratePlainText = function (scope) {
+    var self = this;
+    var rootEl = scope && scope.nodeType === 1 ? scope : document.body;
+    var nodes = [];
+    var walker = document.createTreeWalker(rootEl, NodeFilter.SHOW_TEXT, {
+      acceptNode: function (node) {
+        var parent = node.parentElement;
+        if (!parent || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+        if (!parent.closest('#theory, #task-text, #quiz, #hints, #verdict, #exam-modal, #review-modal, #cheat-view')) return NodeFilter.FILTER_REJECT;
+        if (parent.closest('code, pre, textarea, input, button, a, script, style, svg, .glossary-term')) return NodeFilter.FILTER_REJECT;
+        INLINE_RE.lastIndex = 0;
+        return INLINE_RE.test(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+      }
+    });
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+
+    nodes.forEach(function (node) {
+      var text = node.nodeValue;
+      var frag = document.createDocumentFragment();
+      var last = 0;
+      INLINE_RE.lastIndex = 0;
+      var match;
+      while ((match = INLINE_RE.exec(text))) {
+        var term = lookup(match[0]);
+        if (!term) continue;
+        if (match.index > last) frag.appendChild(document.createTextNode(text.slice(last, match.index)));
+        var span = document.createElement('span');
+        span.className = 'glossary-inline';
+        span.textContent = match[0];
+        self.bindTerm(span, term);
+        frag.appendChild(span);
+        last = match.index + match[0].length;
+      }
+      if (!last) return;
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
     });
   };
 

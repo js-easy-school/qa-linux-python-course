@@ -120,33 +120,167 @@
     this.badge = opts.badge;
     this.toggle = opts.toggle;
     this.replay = opts.replay;
+    this.detach = opts.detach;
+    this.fullscreen = opts.fullscreen;
     this.sceneName = null;
     this.lesson = null;
     this.session = null;
     this.lastEvent = null;
     this.flowTimer = null;
+    this.detachedWindow = null;
+    this.detachedPlaceholder = null;
+    this.homeParent = null;
+    this.homeNextSibling = null;
     this.bind();
   }
 
   Visualizer.prototype.bind = function () {
     var self = this;
     this.toggle.addEventListener('click', function () {
-      self.panel.classList.toggle('collapsed');
-      var collapsed = self.panel.classList.contains('collapsed');
-      self.toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
-      self.toggle.textContent = collapsed ? 'Развернуть' : 'Свернуть';
-      try { localStorage.setItem('qa-course-viz-collapsed', collapsed ? '1' : '0'); } catch (e) {}
+      self.setCollapsed(!self.panel.classList.contains('collapsed'));
     });
     this.replay.addEventListener('click', function () {
       if (self.lastEvent) self.showEvent(self.lastEvent, false, true);
     });
+    if (this.detach) {
+      this.detach.addEventListener('click', function () { self.toggleDetached(); });
+    }
+    if (this.fullscreen) {
+      this.fullscreen.addEventListener('click', function () { self.toggleFullscreen(); });
+      document.addEventListener('fullscreenchange', function () { self.updateFullscreenControl(); });
+    }
+    root.addEventListener('pagehide', function () {
+      if (self.detachedWindow && !self.detachedWindow.closed) self.detachedWindow.close();
+    });
     try {
       if (localStorage.getItem('qa-course-viz-collapsed') === '1') {
-        this.panel.classList.add('collapsed');
-        this.toggle.setAttribute('aria-expanded', 'false');
-        this.toggle.textContent = 'Развернуть';
+        this.setCollapsed(true, false);
       }
     } catch (e) {}
+  };
+
+  Visualizer.prototype.setCollapsed = function (collapsed, persist) {
+    this.panel.classList.toggle('collapsed', collapsed);
+    this.toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+    this.toggle.textContent = collapsed ? 'Развернуть' : 'Свернуть';
+    if (persist !== false) {
+      try { localStorage.setItem('qa-course-viz-collapsed', collapsed ? '1' : '0'); } catch (e) {}
+    }
+  };
+
+  Visualizer.prototype.copyStylesTo = function (targetDocument) {
+    Array.prototype.forEach.call(document.querySelectorAll('link[rel="stylesheet"], style'), function (node) {
+      var clone = node.cloneNode(true);
+      if (node.tagName === 'LINK') clone.href = node.href;
+      targetDocument.head.appendChild(clone);
+    });
+  };
+
+  Visualizer.prototype.prepareDetachedDocument = function (detachedWindow) {
+    var targetDocument = detachedWindow.document;
+    targetDocument.head.innerHTML = '';
+    targetDocument.body.innerHTML = '';
+    var meta = targetDocument.createElement('meta');
+    meta.name = 'viewport';
+    meta.content = 'width=device-width, initial-scale=1';
+    targetDocument.head.appendChild(meta);
+    var title = targetDocument.createElement('title');
+    title.textContent = 'Живая схема — QA Automation 5G Core';
+    targetDocument.head.appendChild(title);
+    this.copyStylesTo(targetDocument);
+    targetDocument.documentElement.setAttribute('data-theme', document.documentElement.getAttribute('data-theme') || 'dark');
+    targetDocument.body.className = 'viz-detached-body';
+    targetDocument.body.appendChild(this.panel);
+    targetDocument.addEventListener('fullscreenchange', this.updateFullscreenControl.bind(this));
+  };
+
+  Visualizer.prototype.makeDetachedPlaceholder = function () {
+    var self = this;
+    var box = document.createElement('div');
+    box.className = 'viz-detached-placeholder';
+    box.innerHTML = '<i></i><span>Живая схема открыта в отдельном окне</span>';
+    var button = document.createElement('button');
+    button.className = 'viz-action';
+    button.type = 'button';
+    button.textContent = 'Вернуть в курс';
+    button.addEventListener('click', function () { self.restoreFromDetached(true); });
+    box.appendChild(button);
+    return box;
+  };
+
+  Visualizer.prototype.openDetached = function () {
+    if (this.detachedWindow && !this.detachedWindow.closed) {
+      try { this.detachedWindow.focus(); } catch (e) {}
+      return;
+    }
+
+    /* Открываем синхронно внутри клика: так браузер не считает окно нежелательным popup. */
+    var detachedWindow = root.open('', 'qaCourseLiveVisualizer', 'popup=yes,width=1000,height=720,resizable=yes,scrollbars=no');
+    if (!detachedWindow) {
+      this.detach.title = 'Окно заблокировано браузером — разрешите всплывающие окна для курса';
+      return;
+    }
+
+    this.homeParent = this.panel.parentNode;
+    this.homeNextSibling = this.panel.nextSibling;
+    this.detachedPlaceholder = this.makeDetachedPlaceholder();
+    this.homeParent.insertBefore(this.detachedPlaceholder, this.panel);
+    this.detachedWindow = detachedWindow;
+    this.prepareDetachedDocument(detachedWindow);
+    this.detach.textContent = '↙ Вернуть';
+    this.detach.title = 'Вернуть схему в окно курса';
+
+    var self = this;
+    detachedWindow.addEventListener('pagehide', function () { self.restoreFromDetached(false); }, { once: true });
+    try { detachedWindow.focus(); } catch (e) {}
+  };
+
+  Visualizer.prototype.restoreFromDetached = function (closeWindow) {
+    var detachedWindow = this.detachedWindow;
+    if (this.homeParent && this.panel.ownerDocument !== document) {
+      var anchor = this.homeNextSibling && this.homeNextSibling.parentNode === this.homeParent ? this.homeNextSibling : null;
+      this.homeParent.insertBefore(this.panel, anchor);
+    }
+    if (this.detachedPlaceholder) this.detachedPlaceholder.remove();
+    this.detachedPlaceholder = null;
+    this.detachedWindow = null;
+    if (this.detach) {
+      this.detach.textContent = '↗ Отдельно';
+      this.detach.title = 'Открыть схему в отдельном изменяемом окне';
+    }
+    this.updateFullscreenControl();
+    if (closeWindow && detachedWindow && !detachedWindow.closed) {
+      try { detachedWindow.close(); } catch (e) {}
+    }
+  };
+
+  Visualizer.prototype.toggleDetached = function () {
+    if (this.panel.ownerDocument !== document) this.restoreFromDetached(true);
+    else this.openDetached();
+  };
+
+  Visualizer.prototype.updateFullscreenControl = function () {
+    if (!this.fullscreen) return;
+    var doc = this.panel.ownerDocument;
+    var active = doc && doc.fullscreenElement === this.panel;
+    this.fullscreen.textContent = active ? '⛶' : '⛶';
+    this.fullscreen.title = active ? 'Выйти из полноэкранного режима' : 'Развернуть схему на весь экран';
+    this.fullscreen.setAttribute('aria-label', this.fullscreen.title);
+  };
+
+  Visualizer.prototype.toggleFullscreen = function () {
+    var self = this;
+    var doc = this.panel.ownerDocument;
+    if (doc.fullscreenElement) {
+      var exitResult = doc.exitFullscreen && doc.exitFullscreen();
+      if (exitResult && exitResult.catch) exitResult.catch(function () {});
+      return;
+    }
+    if (this.panel.classList.contains('collapsed')) this.setCollapsed(false);
+    if (this.panel.requestFullscreen) {
+      var result = this.panel.requestFullscreen();
+      if (result && result.then) result.then(function () { self.updateFullscreenControl(); }).catch(function () {});
+    }
   };
 
   Visualizer.prototype.attach = function (session, lesson) {

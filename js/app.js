@@ -546,7 +546,8 @@
     visualizer = new window.CourseVisualizer({
       panel: $('live-lab'), stage: $('viz-stage'), sceneLabel: $('viz-scene-label'),
       eventTitle: $('viz-event-title'), summary: $('viz-summary'), steps: $('viz-steps'),
-      badge: $('viz-badge'), toggle: $('viz-toggle'), replay: $('viz-replay')
+      badge: $('viz-badge'), toggle: $('viz-toggle'), replay: $('viz-replay'),
+      detach: $('viz-detach'), fullscreen: $('viz-fullscreen')
     });
 
     glossary = new window.CourseGlossary({
