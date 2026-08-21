@@ -76,7 +76,7 @@
       el.className = 'les' + (i === state.idx ? ' active' : '') + (state.done[les.id] ? ' done' : '');
       el.innerHTML = '<span class="mark">' + (state.done[les.id] ? '✓' : (les.mode === 'python' ? 'py' : '$')) + '</span>' +
         '<span>' + les.title + '</span>';
-      el.onclick = function () { go(i); if (window.innerWidth <= 1150) $('sidebar').classList.remove('open'); };
+      el.onclick = function () { go(i); if (window.innerWidth <= 1390) $('sidebar').classList.remove('open'); };
       box.appendChild(el);
     });
   }
