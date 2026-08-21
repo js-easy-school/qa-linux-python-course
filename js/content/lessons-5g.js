@@ -336,4 +336,3 @@
     quiz: { q: 'Все контейнеры Up. Можно закрыть приёмку?', options: ['Да', 'Нет: нужны NF, UE, PDU/user plane и tests', 'Да, если AMF healthy', 'Да, если NRF 200'], answer: 1, explain: 'Container state — только инфраструктурный слой.' }
   });
 })(typeof window !== 'undefined' ? window : globalThis);
-
