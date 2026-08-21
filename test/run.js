@@ -14,6 +14,8 @@ require('../js/content/lessons-linux.js');
 require('../js/content/lessons-linux2.js');
 require('../js/content/lessons-python.js');
 require('../js/content/lessons-pytest.js');
+require('../js/content/lessons-5g.js');
+require('../js/content/mentor-notes.js');
 require('../js/content/exam.js');
 
 const L = global.QALessons || [];
@@ -34,6 +36,12 @@ for (const les of L) {
   if (!les.title || !les.task || !les.theory) { fail(les, 'нет заголовка, задания или теории'); continue; }
   if (!les.checks || !les.checks.length) { fail(les, 'у урока нет проверок'); continue; }
   if (!les.solution) { fail(les, 'нет эталонного решения'); continue; }
+  if (les.day <= 4 && !(global.QAMentorNotes || {})[les.id]) {
+    fail(les, 'для урока первых четырёх дней нет комментария наставника');
+  }
+  if (les.day >= 5 && !les.mentor) {
+    fail(les, 'для нового урока нет рабочего контекста наставника');
+  }
   if (les.quiz && (les.quiz.answer < 0 || les.quiz.answer >= les.quiz.options.length)) {
     fail(les, 'в квизе неверный индекс правильного ответа');
   }

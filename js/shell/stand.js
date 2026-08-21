@@ -222,7 +222,10 @@
       { proto: 'tcp', state: 'LISTEN', local: '0.0.0.0:8080', peer: '0.0.0.0:*', pid: 812, prog: 'registrar' },
       { proto: 'tcp', state: 'LISTEN', local: '0.0.0.0:22', peer: '0.0.0.0:*', pid: 512, prog: 'sshd' },
       { proto: 'tcp', state: 'LISTEN', local: '127.0.0.1:5432', peer: '0.0.0.0:*', pid: 640, prog: 'db-proxy' },
-      { proto: 'udp', state: 'UNCONN', local: '0.0.0.0:68', peer: '0.0.0.0:*', pid: 402, prog: 'dhclient' }
+      { proto: 'udp', state: 'UNCONN', local: '0.0.0.0:68', peer: '0.0.0.0:*', pid: 402, prog: 'dhclient' },
+      { proto: 'sctp', state: 'LISTEN', local: '10.33.0.20:38412', peer: '0.0.0.0:*', pid: 1520, prog: 'open5gs-amfd' },
+      { proto: 'udp', state: 'UNCONN', local: '10.33.0.22:8805', peer: '0.0.0.0:*', pid: 1522, prog: 'open5gs-upfd' },
+      { proto: 'udp', state: 'UNCONN', local: '10.33.0.22:2152', peer: '0.0.0.0:*', pid: 1522, prog: 'open5gs-upfd' }
     ];
 
     this.interfaces = [
@@ -234,6 +237,11 @@
     this.dns = {
       'core-node.lab': '10.10.0.10',
       'db.core.local': '10.10.0.20',
+      'nrf': '10.33.0.10',
+      'amf': '10.33.0.20',
+      'smf': '10.33.0.21',
+      'upf': '10.33.0.22',
+      'gnb': '10.33.0.30',
       'localhost': '127.0.0.1'
     };
 
@@ -251,6 +259,19 @@
     this.sessions = {};
     this.apiCalls = [];
     this.dbUp = true;
+    this.fiveg = {
+      containers: ['mongo', 'nrf', 'scp', 'ausf', 'udm', 'udr', 'pcf', 'bsf', 'nssf', 'amf', 'smf', 'upf', 'gnb', 'ue'],
+      down: [],
+      nfTypes: ['AMF', 'SMF', 'AUSF', 'UDM', 'UDR', 'PCF', 'BSF', 'NSSF'],
+      ueState: 'RM-REGISTERED',
+      pduState: 'PS-ACTIVE',
+      ueIp: '10.45.0.2',
+      gnbConnected: true,
+      userPlane: true,
+      authOk: true,
+      configValid: true,
+      imsis: ['999700000000001', '999700000000002']
+    };
 
     applyScenario(this, this.scenario);
   }
@@ -332,6 +353,33 @@
       });
       st.fs.writeFile('/var/log/core/registrar.log', st.fs.readFile('/var/log/core/registrar.log') +
         '2026-08-16 10:50:22 ERROR bind to 0.0.0.0:8080 failed: Address already in use\n');
+      return;
+    }
+
+    if (name === 'nf-missing') {
+      st.fiveg.down = ['udm'];
+      st.fiveg.nfTypes = st.fiveg.nfTypes.filter(function (x) { return x !== 'UDM'; });
+      st.fiveg.ueState = 'RM-DEREGISTERED';
+      return;
+    }
+    if (name === 'ngap-down') {
+      st.fiveg.gnbConnected = false;
+      st.fiveg.ueState = 'RM-DEREGISTERED';
+      return;
+    }
+    if (name === 'auth-fail') {
+      st.fiveg.authOk = false;
+      st.fiveg.ueState = 'RM-DEREGISTERED';
+      return;
+    }
+    if (name === 'user-plane-down') {
+      st.fiveg.userPlane = false;
+      st.fiveg.pduState = 'PS-INACTIVE';
+      st.fiveg.ueIp = null;
+      return;
+    }
+    if (name === 'bad-compose') {
+      st.fiveg.configValid = false;
       return;
     }
   }
@@ -455,5 +503,5 @@
     return lines;
   };
 
-  root.CourseStand = { Stand: Stand, FS: FS, buildFS: buildFS, SCENARIOS: ['ok', 'service-down', 'wrong-bind', 'firewall', 'db-down', 'disk-full', 'dns-broken', 'port-conflict'] };
+  root.CourseStand = { Stand: Stand, FS: FS, buildFS: buildFS, SCENARIOS: ['ok', 'service-down', 'wrong-bind', 'firewall', 'db-down', 'disk-full', 'dns-broken', 'port-conflict', 'nf-missing', 'ngap-down', 'auth-fail', 'user-plane-down', 'bad-compose'] };
 })(typeof window !== 'undefined' ? window : (typeof globalThis !== 'undefined' ? globalThis : this));
