@@ -11,12 +11,18 @@
     done: {},
     xp: 0,
     quizDone: {},
-    code: {}          // сохранённый код по урокам
+    code: {},          // сохранённый код по урокам
+    attempts: {},      // количество удачных и неудачных проверок
+    reviews: {}        // сила памяти и дата следующего повторения
   };
 
   var session = null;   // текущая сессия консоли
   var lastPy = null;    // последний запуск Python
   var term, editor;
+  var reviewMode = false;
+
+  var REVIEW_INTERVALS = [10 * 60 * 1000, 24 * 60 * 60 * 1000, 3 * 24 * 60 * 60 * 1000,
+    7 * 24 * 60 * 60 * 1000, 14 * 24 * 60 * 60 * 1000];
 
   /* ─────────── хранилище ─────────── */
 
@@ -29,7 +35,12 @@
         state.xp = d.xp || 0;
         state.quizDone = d.quizDone || {};
         state.code = d.code || {};
+        state.attempts = d.attempts || {};
+        state.reviews = d.reviews || {};
         state.idx = typeof d.idx === 'number' ? Math.min(d.idx, L.length - 1) : 0;
+        Object.keys(state.done).forEach(function (id) {
+          if (!state.reviews[id]) state.reviews[id] = { strength: 1, successes: 1, failures: 0, next: 0 };
+        });
       }
     } catch (e) { /* приватный режим — просто без сохранения */ }
   }
@@ -74,14 +85,26 @@
     1: 'Linux: файлы, логи, поиск',
     2: 'Linux: процессы, службы, сеть',
     3: 'Python: основа руками',
-    4: 'Python: тесты API и pytest'
+    4: 'Python: тесты API и pytest',
+    5: 'Docker, Compose и CI',
+    6: 'Архитектура и протоколы 5G SA',
+    7: 'BDD, данные и диагностика 5G',
+    8: 'Рабочая смена и собеседование'
   };
 
   function renderProgress() {
     var done = Object.keys(state.done).length;
+    var mastered = L.filter(function (les) {
+      var r = state.reviews[les.id];
+      return r && r.successes >= 2 && r.strength >= 2;
+    }).length;
+    var due = reviewQueue(true).length;
     $('bar-fill').style.width = (L.length ? done / L.length * 100 : 0) + '%';
     $('prog-label').textContent = done + ' из ' + L.length;
     $('xp').textContent = state.xp;
+    $('mastery').textContent = (L.length ? Math.round(mastered / L.length * 100) : 0) + '%';
+    $('review-count').textContent = due;
+    $('btn-review').classList.toggle('due', due > 0);
   }
 
   /* ─────────── урок ─────────── */
@@ -90,6 +113,7 @@
 
   function go(i) {
     if (i < 0 || i >= L.length) return;
+    reviewMode = false;
     state.idx = i;
     save();
     renderSidebar();
@@ -98,10 +122,15 @@
 
   function renderLesson() {
     var les = cur();
+    var note = (window.QAMentorNotes || {})[les.id] || les.mentor;
+    $('pane-mid').classList.toggle('review-active', reviewMode);
+    $('review-banner').hidden = !reviewMode;
+    $('btn-reveal').disabled = false;
+    $('btn-reveal').textContent = 'Открыть теорию';
     $('kicker').textContent = 'День ' + les.day + ' · ' + les.module;
     $('title').textContent = les.title;
     $('goal').textContent = les.goal || '';
-    $('theory').innerHTML = les.theory || '';
+    $('theory').innerHTML = (les.theory || '') + renderMentor(note);
     $('task-text').innerHTML = les.task || '';
     $('hints').innerHTML = '';
     $('verdict').className = 'verdict';
@@ -133,9 +162,35 @@
     $('pane-mid').scrollTop = 0;
   }
 
+  function renderMentor(note) {
+    if (!note) return '';
+    return '<div class="study-loop"><b>Цикл урока:</b>' +
+      '<span class="study-step">прочитать</span><span class="study-arrow">→</span>' +
+      '<span class="study-step">предсказать</span><span class="study-arrow">→</span>' +
+      '<span class="study-step">выполнить</span><span class="study-arrow">→</span>' +
+      '<span class="study-step">объяснить вслух</span></div>' +
+      '<section class="mentor-brief"><div class="mentor-title">▣ Комментарий наставника</div>' +
+      '<div class="mentor-grid">' +
+      mentorItem('Зачем это QA 5G', note.why) + mentorItem('Что наблюдать', note.observe) +
+      mentorItem('Частая ошибка', note.mistake, 'mistake') + mentorItem('Как защитить на собеседовании', note.explain) +
+      '</div></section>';
+  }
+
+  function mentorItem(label, text, cls) {
+    return '<article class="mentor-item ' + (cls || '') + '"><span>' + label + '</span><p>' + text + '</p></article>';
+  }
+
   function updateStandLine() {
     if (!session) return;
     var st = session.stand;
+    if (cur().day >= 5 && st.fiveg) {
+      var f = st.fiveg;
+      $('stand-line').innerHTML = '5G SA: <b>Open5GS + UERANSIM</b> · containers ' +
+        (f.containers.length - f.down.length) + '/' + f.containers.length + ' up · NF ' + f.nfTypes.length + '/8 · UE ' +
+        (f.ueState === 'RM-REGISTERED' ? '<span class="up">' + f.ueState + '</span>' : '<span class="down">' + f.ueState + '</span>') +
+        ' · PDU ' + (f.pduState === 'PS-ACTIVE' ? '<span class="up">active</span>' : '<span class="down">inactive</span>');
+      return;
+    }
     var svc = st.services['core-registrar'];
     var sock = st.sockets.filter(function (s) { return s.prog === 'registrar'; })[0];
     $('stand-line').innerHTML =
@@ -197,6 +252,7 @@
 
     var res = window.QAEngine.checkLesson(les, ctx);
     showVerdict(res.ok, res.fails);
+    recordAttempt(les.id, res.ok);
 
     if (res.ok && !state.done[les.id]) {
       state.done[les.id] = true;
@@ -205,6 +261,59 @@
       renderProgress();
       save();
     }
+    if (res.ok && reviewMode) {
+      $('verdict').innerHTML += '<div class="review-result">Следующее повторение: ' + formatDue(state.reviews[les.id].next) + '.</div>';
+    }
+    renderProgress();
+    save();
+  }
+
+  function recordAttempt(id, okFlag) {
+    var a = state.attempts[id] || { success: 0, fail: 0 };
+    var r = state.reviews[id] || { strength: 0, successes: 0, failures: 0, next: 0 };
+    if (okFlag) {
+      a.success++;
+      r.successes++;
+      r.strength = Math.min(5, r.strength + 1);
+      var interval = REVIEW_INTERVALS[Math.min(REVIEW_INTERVALS.length - 1, Math.max(0, r.strength - 1))];
+      r.next = Date.now() + interval;
+    } else {
+      a.fail++;
+      r.failures++;
+      r.strength = Math.max(0, r.strength - 1);
+      r.next = Date.now() + 10 * 60 * 1000;
+    }
+    r.last = Date.now();
+    state.attempts[id] = a;
+    state.reviews[id] = r;
+  }
+
+  function reviewQueue(onlyDue) {
+    var now = Date.now();
+    return L.filter(function (les) {
+      var r = state.reviews[les.id];
+      if (!state.done[les.id] || !r) return false;
+      return !onlyDue || !r.next || r.next <= now;
+    }).sort(function (a, b) {
+      var ra = state.reviews[a.id], rb = state.reviews[b.id];
+      if (ra.strength !== rb.strength) return ra.strength - rb.strength;
+      return (ra.next || 0) - (rb.next || 0);
+    });
+  }
+
+  function smartReviewQueue() {
+    var due = reviewQueue(true);
+    if (due.length) return due;
+    return reviewQueue(false).slice(0, 7);
+  }
+
+  function formatDue(timestamp) {
+    if (!timestamp || timestamp <= Date.now()) return 'сейчас';
+    var mins = Math.ceil((timestamp - Date.now()) / 60000);
+    if (mins < 60) return 'через ' + mins + ' мин';
+    var hours = Math.ceil(mins / 60);
+    if (hours < 24) return 'через ' + hours + ' ч';
+    return 'через ' + Math.ceil(hours / 24) + ' дн';
   }
 
   function showVerdict(ok, fails) {
@@ -261,7 +370,11 @@
     { t: '/etc/core/subscribers.csv', label: 'абоненты', wide: true },
     { t: 'core-registrar', wide: true },
     { t: 'http://localhost:8080', wide: true },
-    { t: '250010000000001', label: 'IMSI', wide: true }
+    { t: '250010000000001', label: 'IMSI старого стенда', wide: true },
+    { t: 'docker compose ps --all', label: 'compose ps', wide: true },
+    { t: 'docker compose logs --tail=100 ', label: 'compose logs', wide: true },
+    { t: '999700000000001', label: '5G IMSI', wide: true },
+    { t: 'http://nrf:7777/nnrf-nfm/v1/nf-instances', label: 'NRF endpoint', wide: true }
   ];
 
   var PY_KEYS = [
@@ -313,6 +426,56 @@
       $('shell-view').hidden = les.mode === 'python';
       $('py-view').hidden = les.mode !== 'python';
     }
+  }
+
+  /* ─────────── интервальное повторение ─────────── */
+
+  function strengthBars(n) {
+    var html = '<span class="strength" title="прочность памяти ' + n + ' из 5">';
+    for (var i = 1; i <= 5; i++) html += '<i class="' + (i <= n ? 'on' : '') + '"></i>';
+    return html + '</span>';
+  }
+
+  function openReview() {
+    var due = reviewQueue(true);
+    var queue = smartReviewQueue();
+    var learned = Object.keys(state.done).length;
+    var mastered = L.filter(function (les) {
+      var r = state.reviews[les.id];
+      return r && r.successes >= 2 && r.strength >= 2;
+    }).length;
+    var box = $('review-modal');
+    box.innerHTML = '<h2>Умное повторение</h2>' +
+      '<div class="sub">Алгоритм показывает сначала просроченные и слабые темы. Во время повтора теория и подсказки закрыты до первой попытки.</div>' +
+      '<div class="review-summary">' +
+      '<div class="review-metric"><b>' + due.length + '</b><span>пора повторить</span></div>' +
+      '<div class="review-metric"><b>' + learned + '</b><span>пройдено один раз</span></div>' +
+      '<div class="review-metric"><b>' + mastered + '</b><span>закреплено ≥ 2 раз</span></div></div>' +
+      '<div class="readiness-note"><b>Правило допуска:</b> «пройдено» означает одну удачную попытку, а «закреплено» — минимум две удачные попытки в разные подходы. Для выхода на собеседование цель — 80% закреплённых уроков и 8/10 на трёх экзаменах подряд.</div>' +
+      (queue.length ? '<div class="review-list">' + queue.slice(0, 7).map(function (les) {
+        var r = state.reviews[les.id];
+        return '<div class="review-row"><div class="review-info"><b>' + les.title + '</b><small>День ' + les.day + ' · ' + formatDue(r.next) + '</small></div>' +
+          strengthBars(r.strength) + '<button class="btn btn-ghost review-pick" data-id="' + les.id + '">Повторить</button></div>';
+      }).join('') + '</div>' : '<div class="note">Сначала завершите хотя бы один практический урок — он появится в очереди повторения.</div>') +
+      '<div class="task-actions">' + (queue.length ? '<button class="btn btn-check" id="review-start">Начать слабую тему</button>' : '') +
+      '<button class="btn btn-ghost" id="review-close">Закрыть</button></div>';
+    $('review-back').hidden = false;
+    box.querySelectorAll('.review-pick').forEach(function (button) {
+      button.onclick = function () { startReview(button.dataset.id); };
+    });
+    if ($('review-start')) $('review-start').onclick = function () { startReview(queue[0].id); };
+    $('review-close').onclick = function () { $('review-back').hidden = true; };
+  }
+
+  function startReview(id) {
+    var idx = L.findIndex(function (les) { return les.id === id; });
+    if (idx < 0) return;
+    state.idx = idx;
+    reviewMode = true;
+    $('review-back').hidden = true;
+    save();
+    renderSidebar();
+    renderLesson();
   }
 
   /* ─────────── экзамен ─────────── */
@@ -426,6 +589,16 @@
     $('wt-main').onclick = function () { setWorkTab('main'); };
     $('wt-cheat').onclick = function () { setWorkTab('cheat'); };
     $('btn-exam').onclick = openExam;
+    $('btn-review').onclick = openReview;
+    $('btn-reveal').onclick = function () {
+      $('pane-mid').classList.remove('review-active');
+      $('btn-reveal').disabled = true;
+      $('btn-reveal').textContent = 'Теория открыта';
+    };
+    $('btn-review-exit').onclick = function () {
+      reviewMode = false;
+      renderLesson();
+    };
     $('btn-menu').onclick = function () { $('sidebar').classList.toggle('open'); };
     $('m-theory').onclick = function () {
       $('pane-mid').classList.add('show'); $('pane-work').classList.remove('show');
@@ -445,7 +618,8 @@
 
     $('btn-reset').onclick = function () {
       if (!confirm('Сбросить весь прогресс и написанный код?')) return;
-      state.done = {}; state.xp = 0; state.quizDone = {}; state.code = {}; state.idx = 0;
+      state.done = {}; state.xp = 0; state.quizDone = {}; state.code = {};
+      state.attempts = {}; state.reviews = {}; state.idx = 0; reviewMode = false;
       save();
       renderSidebar(); renderProgress(); renderLesson();
     };

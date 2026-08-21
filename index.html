@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Linux и Python за 4 дня — тренажёр под собеседование QA</title>
+<title>QA Automation 5G Core — практический курс с повторением</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230f9d8f'/><text y='70' x='50' font-size='52' text-anchor='middle' font-family='monospace' font-weight='bold' fill='%23041a18'>&gt;_</text></svg>">
-<link rel="stylesheet" href="css/style.css?v=20260817b">
+<link rel="stylesheet" href="css/style.css?v=20260821a">
 <script>
   try {
     var t = localStorage.getItem('qa-course-theme');
@@ -21,8 +21,8 @@
   <div class="brand">
     <div class="logo">&gt;_</div>
     <div class="brand-text">
-      Linux и Python за 4 дня
-      <small>тренажёр под собеседование QA ядра сети</small>
+      QA Automation 5G Core
+      <small>8 дней · практика · интервальное повторение</small>
     </div>
   </div>
 
@@ -38,6 +38,8 @@
 
   <div class="stats">
     <div class="stat"><b id="xp">0</b><span>XP</span></div>
+    <div class="stat"><b id="mastery">0%</b><span>Навык</span></div>
+    <button class="icon-btn review-btn" id="btn-review" title="Умное повторение">↻ <span id="review-count">0</span></button>
     <button class="icon-btn" id="btn-theme" title="Светлая / тёмная тема">◐</button>
     <button class="icon-btn" id="btn-exam" title="Режим собеседования">🎯</button>
     <button class="icon-btn" id="btn-reset" title="Сбросить прогресс">⟲</button>
@@ -55,6 +57,12 @@
     </div>
 
     <div class="theory" id="theory"></div>
+
+    <div class="review-banner" id="review-banner" hidden>
+      <div><b>Повторение без подсказки.</b> Сначала выполните задание по памяти и объясните ход решения вслух.</div>
+      <button class="btn btn-ghost" id="btn-reveal">Открыть теорию</button>
+      <button class="btn btn-ghost" id="btn-review-exit">Выйти из повтора</button>
+    </div>
 
     <div class="task-card">
       <h3>▶ Задание</h3>
@@ -123,22 +131,28 @@
   <div class="modal" id="exam-modal"></div>
 </div>
 
-<script src="js/shell/stand.js?v=20260817b"></script>
-<script src="js/shell/shell.js?v=20260817b"></script>
-<script src="js/py/lexer.js?v=20260817b"></script>
-<script src="js/py/parser.js?v=20260817b"></script>
-<script src="js/py/interp.js?v=20260817b"></script>
-<script src="js/py/builtins.js?v=20260817b"></script>
-<script src="js/py/stdlib.js?v=20260817b"></script>
-<script src="js/engine.js?v=20260817b"></script>
-<script src="js/content/lessons-linux.js?v=20260817b"></script>
-<script src="js/content/lessons-linux2.js?v=20260817b"></script>
-<script src="js/content/lessons-python.js?v=20260817b"></script>
-<script src="js/content/lessons-pytest.js?v=20260817b"></script>
-<script src="js/content/cheatsheet.js?v=20260817b"></script>
-<script src="js/content/exam.js?v=20260817b"></script>
-<script src="js/ui/terminal.js?v=20260817b"></script>
-<script src="js/ui/editor.js?v=20260817b"></script>
-<script src="js/app.js?v=20260817b"></script>
+<div class="modal-back" id="review-back" hidden>
+  <div class="modal" id="review-modal"></div>
+</div>
+
+<script src="js/shell/stand.js?v=20260821a"></script>
+<script src="js/shell/shell.js?v=20260821a"></script>
+<script src="js/py/lexer.js?v=20260821a"></script>
+<script src="js/py/parser.js?v=20260821a"></script>
+<script src="js/py/interp.js?v=20260821a"></script>
+<script src="js/py/builtins.js?v=20260821a"></script>
+<script src="js/py/stdlib.js?v=20260821a"></script>
+<script src="js/engine.js?v=20260821a"></script>
+<script src="js/content/lessons-linux.js?v=20260821a"></script>
+<script src="js/content/lessons-linux2.js?v=20260821a"></script>
+<script src="js/content/lessons-python.js?v=20260821a"></script>
+<script src="js/content/lessons-pytest.js?v=20260821a"></script>
+<script src="js/content/lessons-5g.js?v=20260821a"></script>
+<script src="js/content/mentor-notes.js?v=20260821a"></script>
+<script src="js/content/cheatsheet.js?v=20260821a"></script>
+<script src="js/content/exam.js?v=20260821a"></script>
+<script src="js/ui/terminal.js?v=20260821a"></script>
+<script src="js/ui/editor.js?v=20260821a"></script>
+<script src="js/app.js?v=20260821a"></script>
 </body>
 </html>

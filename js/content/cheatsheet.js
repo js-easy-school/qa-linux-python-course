@@ -107,5 +107,41 @@
 <tr><td>Идемпотентность</td><td>повтор запроса не создаёт дубль</td></tr>
 <tr><td>Flaky-тест</td><td>нестабильный, подрывает доверие к прогону; чинить, а не перезапускать</td></tr>
 </table>
+
+<h3>Docker и CI</h3>
+<table>
+<tr><td>docker compose config</td><td>проверить итоговую модель до build</td></tr>
+<tr><td>docker compose ps --all</td><td>running, exited и health всех сервисов</td></tr>
+<tr><td>docker compose logs --since=5m amf smf</td><td>свежие логи выбранных NF</td></tr>
+<tr><td>docker inspect o5g-udm</td><td>State, ExitCode, Health, mounts, command</td></tr>
+<tr><td>docker stats --no-stream</td><td>один срез CPU/RAM для CI</td></tr>
+<tr><td>validate → build → deploy → ready → test</td><td>сначала быстрые и дешёвые gates</td></tr>
+<tr><td>if: always()</td><td>JUnit/логи/artifacts и teardown даже при падении</td></tr>
+</table>
+
+<h3>5G Core: функции и интерфейсы</h3>
+<table>
+<tr><td>NRF</td><td>реестр NF и service discovery</td></tr>
+<tr><td>AMF</td><td>доступ и mobility; N2/NGAP поверх SCTP 38412</td></tr>
+<tr><td>AUSF + UDM/UDR</td><td>аутентификация и данные абонента</td></tr>
+<tr><td>SMF</td><td>PDU session; управляет UPF по N4/PFCP UDP 8805</td></tr>
+<tr><td>UPF</td><td>user plane; N3/GTP-U UDP 2152, TUN ogstun</td></tr>
+<tr><td>PCF / NSSF</td><td>policy / выбор slice</td></tr>
+<tr><td>RM-REGISTERED</td><td>UE зарегистрирован, но data path ещё не доказан</td></tr>
+<tr><td>PS-ACTIVE + DNN + IP</td><td>активная PDU session; затем проверяем трафик</td></tr>
+<tr><td>curl --http2-prior-knowledge</td><td>явный h2c к Open5GS SBI</td></tr>
+<tr><td>ss -lnp -A sctp</td><td>SCTP listener AMF; TCP nc здесь неверен</td></tr>
+<tr><td>tcpdump -nn udp port 2152</td><td>GTP-U между gNB и UPF</td></tr>
+</table>
+
+<h3>RCA 5G-инцидента</h3>
+<table>
+<tr><td>1. Симптом и impact</td><td>какой exact flow/IMSI не работает</td></tr>
+<tr><td>2. State snapshot</td><td>Compose ps, версии, время попытки</td></tr>
+<tr><td>3. Последний успешный слой</td><td>NF ready? NG Setup? registration? PDU?</td></tr>
+<tr><td>4. Первый failed слой</td><td>точный log/cause/socket/packet</td></tr>
+<tr><td>5. Root cause</td><td>не «упало», а почему; подтверждено проверкой</td></tr>
+<tr><td>6. Fix + regression</td><td>повторить flow и добавить автоматический guard</td></tr>
+</table>
 `;
 })(typeof window !== 'undefined' ? window : globalThis);
