@@ -18,7 +18,7 @@
 
   var session = null;   // текущая сессия консоли
   var lastPy = null;    // последний запуск Python
-  var term, editor;
+  var term, editor, visualizer, glossary;
   var reviewMode = false;
 
   var REVIEW_INTERVALS = [10 * 60 * 1000, 24 * 60 * 60 * 1000, 3 * 24 * 60 * 60 * 1000,
@@ -157,6 +157,7 @@
       session.banner = les.banner || 'Стенд поднят. Наберите help, если забыли команду.';
       term.attach(session);
     }
+    if (visualizer) visualizer.attach(session, les);
     updateStandLine();
     setWorkTab('main');
     $('pane-mid').scrollTop = 0;
@@ -347,6 +348,7 @@
     if (res.error) text += (text && !/\n$/.test(text) ? '\n' : '') + res.error;
     outEl.appendChild(colorize(text || '(программа ничего не вывела)'));
     updateStandLine();
+    if (visualizer) visualizer.handlePython(code, res, !!withTests);
   }
 
   function colorize(text) {
@@ -421,10 +423,12 @@
     if (which === 'cheat') {
       $('shell-view').hidden = true;
       $('py-view').hidden = true;
+      if (visualizer) visualizer.setVisible(false);
       if (!$('cheat-view').innerHTML) $('cheat-view').innerHTML = window.QACheatsheet || '';
     } else {
       $('shell-view').hidden = les.mode === 'python';
       $('py-view').hidden = les.mode !== 'python';
+      if (visualizer) visualizer.setVisible(true);
     }
   }
 
@@ -539,9 +543,25 @@
   function init() {
     load();
 
+    visualizer = new window.CourseVisualizer({
+      panel: $('live-lab'), stage: $('viz-stage'), sceneLabel: $('viz-scene-label'),
+      eventTitle: $('viz-event-title'), summary: $('viz-summary'), steps: $('viz-steps'),
+      badge: $('viz-badge'), toggle: $('viz-toggle'), replay: $('viz-replay')
+    });
+
+    glossary = new window.CourseGlossary({
+      tooltip: $('glossary-popover'), category: $('glossary-category'),
+      title: $('glossary-title'), text: $('glossary-text')
+    });
+    glossary.observe(document.body);
+
     term = new window.CourseTerminal({
       box: $('term'), out: $('term-out'), input: $('term-input'), prompt: $('term-prompt'),
-      onRun: function () { updateStandLine(); }
+      onRun: function (line, result) {
+        updateStandLine();
+        visualizer.handleCommand(line, result);
+      },
+      onPreview: function (line) { visualizer.preview(line); }
     });
 
     editor = new window.CourseEditor({

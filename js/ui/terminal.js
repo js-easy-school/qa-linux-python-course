@@ -12,6 +12,7 @@
     this.input = opts.input;
     this.promptEl = opts.prompt;
     this.onRun = opts.onRun || function () {};
+    this.onPreview = opts.onPreview || function () {};
     this.session = null;
     this.hist = [];
     this.histPos = -1;
@@ -39,6 +40,7 @@
         if (!self.hist.length) return;
         self.histPos = self.histPos < 0 ? self.hist.length - 1 : Math.max(0, self.histPos - 1);
         self.input.value = self.hist[self.histPos];
+        self.onPreview(self.input.value);
         return;
       }
       if (e.key === 'ArrowDown') {
@@ -47,6 +49,7 @@
         self.histPos++;
         if (self.histPos >= self.hist.length) { self.histPos = -1; self.input.value = ''; }
         else self.input.value = self.hist[self.histPos];
+        self.onPreview(self.input.value);
         return;
       }
       if (e.key === 'Tab') {
@@ -63,15 +66,22 @@
         e.preventDefault();
         self.print('<span class="cmd">' + esc(self.promptEl.textContent) + ' ' + esc(self.input.value) + '^C</span>');
         self.input.value = '';
+        self.onPreview('');
       }
+    });
+
+    this.input.addEventListener('input', function () {
+      self.onPreview(self.input.value);
     });
   };
 
   Terminal.prototype.attach = function (session) {
     this.session = session;
+    this.input.value = '';
     this.outEl.innerHTML = '';
     this.hist = [];
     this.histPos = -1;
+    this.onPreview('');
     this.updatePrompt();
     if (session.banner) this.print('<span style="color:#6d7f8c">' + esc(session.banner) + '</span>');
   };
@@ -138,6 +148,7 @@
     if (candidates.length === 1) {
       parts[parts.length - 1] = candidates[0];
       this.input.value = parts.join(' ');
+      this.onPreview(this.input.value);
       return;
     }
     this.print('<span style="color:#6d7f8c">' + esc(candidates.join('  ')) + '</span>');
